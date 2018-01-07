@@ -90,8 +90,8 @@
 	--> Menu vertical de gauche
 	--> Map
 
-**Contenus du répertoire R1-RC6:**
-----------------------------------
+**Contenus du répertoire principal:**
+-------------------------------------
 
 1. *data*
 
@@ -149,4 +149,4 @@
 --------------------------------
 
 	Notre jeu de données est fait à partir des données récupérées sur la plateforme du Data Grand Lyon :
-<https://data.grandlyon.com># LIFPROJET
+<https://data.grandlyon.com>

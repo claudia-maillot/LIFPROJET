@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title>PLANET LYON</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <!--Mapbox-->
+	<script src ="https://api.tiles.mapbox.com/mapbox-gl-js/v0.40.1/mapbox-gl.js"></script>
+	<link href  ="https://api.tiles.mapbox.com/mapbox-gl-js/v0.40.1/mapbox-gl.css" rel="stylesheet"/>
+	<script src ="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js"></script>
+	<link rel   ="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css" type="text/css"/>
+    <!--Style CSS personnalisé-->
+    <link href="./src/style.css" rel="stylesheet"/>
+    <!--jQuery et jQuery-ui-->
+	<script src ="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src ="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+	<script src ="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+	<script src ="./data/js/jquery-1.12.0.min.js"></script>
+	<link rel   ="stylesheet" href="./data/jquery-ui/jquery-ui.css">
+	<script src ="./data/jquery-ui/jquery-ui.js"></script>
+    <!--Bootstrap-->
+	<link rel   ="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+	<script src ="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+	<link href  ="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+	<!--Initialisation des tableaux de données + des booléens-->
+    <script>
+		var mesMarkers                =[];
+		var mesDonneesHotel           =[];
+		var mesDonneesHebergementColl =[];
+		var mesDonneesHebergementLoc  =[];
+		var mesDonneesCom             =[];
+		var mesDonneesPatri           =[];
+		var mesDonneesResto           =[];
+		var toutesLesDonnees          =[];
+
+		//tabEtoile : tableau à deux éléments, une étoile blanche et une étoile jaune
+		var tabEtoile    = new Array();
+		tabEtoile[0]     = new Image();
+		tabEtoile[0].src = "./data/img/star.png";
+		tabEtoile[1]     = new Image();
+		tabEtoile[1].src = "../data/img/star_yellow.png";
+
+        // etoile_selectionne est un booléen permettant de savoir si une étoile est oui ou non sélectionné, tab_etoile récupéra le type de la donnée dont l'étoile a été sélectionner
+		var etoile_selectionne = false;
+		var tab_etoile         = [];
+
+        // btnRadio_selectionne est un booléen permettant de savoir si un bouton radio est oui ou non sélectionné, tab récupéra le type de la donnée dont le bouton radio a été sélectionner
+		var btnRadio_selectionne = false;
+		var tab_radio            = [];
+
+    </script>
+
+    <!--Récupération des données contenues dans les fichiers .js et insertion des données dans les tableaux initialisés auparavant, en jQuery-->
+    <script>
+        $.getJSON('src/data_hotel.js', function (data) {
+            mesDonneesHotel.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+        $.getJSON('src/data_coll.js', function (data) {
+            mesDonneesHebergementColl.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+        $.getJSON('src/data_commerce.js', function (data) {
+            mesDonneesCom.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+        $.getJSON('src/data_loc.js', function (data) {
+            mesDonneesHebergementLoc.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+        $.getJSON('src/data_patri.js', function (data) {
+            mesDonneesPatri.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+        $.getJSON('src/data_resto.js', function (data) {
+            mesDonneesResto.push(data);
+            toutesLesDonnees.push(data);
+        });
+
+    </script>
+
+    <!--En jQuery-ui-->
+    <script>
+    	//Initialisation et opérations sur les sliders de prix
+        $(function(){
+        	supprimer();
+            var tab = [1,2,3,4];
+            tab.forEach(function(i){
+                var maxi = $('#amount'+i).attr("max");
+                var type = $('#amount'+i).attr("name");
+                $("#slider-range"+ i).slider({
+                    range: true,
+                    min: 0,
+                    max: maxi,
+                    values: [ 0, 50 ],
+                    slide: function(event, ui){ // gère les évènements lorsque l'utilisateur bouge le slider
+                        $("#amount"+ i).val( ui.values[ 0 ] + "€ - " + ui.values[ 1 ]+ "€");
+                        prix(type, i);
+                    }
+                });
+                //Valeur par défaut:
+                $( "#amount"+i).val( $( "#slider-range"+i ).slider( "values", 0 ) +
+                  "€ - " + $( "#slider-range"+ i).slider( "values", 1 )+ "€");
+            })
+        });
+
+        // Autocomplétion de la barre de recherche avec toutes les adresses présentes dans notre base de donnée
+        $(function(){
+        	var baseAdresse = [];
+            toutesLesDonnees.forEach(function(y){
+            	y.features.forEach(function (x){
+                    baseAdresse.push(x.properties.adresse);
+                });
+            });
+
+            $("#search-input").autocomplete({
+              source: baseAdresse,
+              minLength: 3 // l'autocomplétion débutera au bout de 3 caractères
+            }).keyup(function(e){
+            	toucheEntree(e);// gère l'évènement sur la touche entrée lorsque l'utilisateur à sélectionner une adresse dans la liste proposée par l'autocomplétion
+            });
+        });
+    </script>
+
+    <!--Les fonctions JS-->
+
+    <script>
+
+/******************************************************************************************************************************/
+/*************Ajoute des markers et des popups, qui elles s'afficheront lors d'un clic sur le marqueur, sur la map*************/
+/******************************************************************************************************************************/
+
+        function ajouterElementSurCarte(marker, typeMarker) {
+            var el = document.createElement('div'); // crée une div HTML pour chaque propriété
+            el.className = typeMarker; // donne un nom de class à la div créer
+
+            //Création de markers et gestion d'affichage:
+
+            //Affiche uniquement le nom et l'adresse de l'élément si on a aucune donnée pour le site web et le numéro de téléphone
+            if(marker.other_information.siteweb =="" & marker.other_information.tel ==""){
+                mesMarkers.push(new mapboxgl.Marker(el)
+                .setLngLat(marker.geometry.coordinates)
+                .setPopup(new mapboxgl.Popup({ offset: 25 }) // ajout de la popup
+                .setHTML('<h5>' + marker.properties.nom + '</h5><strong class="fa fa-map-marker" aria-hidden="true"> ' + marker.properties.adresse + '</strong>'))
+                .addTo(map));
+            }
+
+            //Affiche le nom, l'adresse et le numéro de téléphone, qui lui sera dans un collapse, si on a aucune donnée pour le site web
+            else if(marker.other_information.siteweb ==""){
+                mesMarkers.push(new mapboxgl.Marker(el)
+                .setLngLat(marker.geometry.coordinates)
+                .setPopup(new mapboxgl.Popup({ offset: 25 }) // ajout de la popup
+                .setHTML('<h5>' + marker.properties.nom + '</h5><strong class="fa fa-map-marker" aria-hidden="true"> ' + marker.properties.adresse + '</strong><div id="accordion" role="tablist" aria-multiselectable="true"><div role="tab" id="headingTwo"><a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"> Plus de détails</a></div><div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo"><div class="card-block"> <i class="fa fa-phone" aria-hidden="true"> ' + marker.other_information.tel + '</i></div></div></div>'))
+                .addTo(map));
+            }
+            //Affiche le nom, l'adresse,le numéro de téléphone et le site web, dont le téléphone et le site web seront dans un collapse
+            else {
+                mesMarkers.push(new mapboxgl.Marker(el)
+                    .setLngLat(marker.geometry.coordinates)
+                    .setPopup(new mapboxgl.Popup({ offset: 25 }) // ajout de la popup
+                    .setHTML('<h5>' + marker.properties.nom + '</h5><strong class="fa fa-map-marker" aria-hidden="true"> ' + marker.properties.adresse + '</strong><div id="accordion" role="tablist" aria-multiselectable="true"><div role="tab" id="headingTwo"><a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"> Plus de détails</a></div><div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo"><div class="card-block"><a class="fa fa-globe" aria-hidden="true" href ="'+ marker.other_information.siteweb +'" target="_blank"> Site Web </a> <br><i class="fa fa-phone" aria-hidden="true"> ' + marker.other_information.tel + '</i></div></div></div>'))
+                    .addTo(map));
+            }
+        }
+/******************************************************************************************************************************/
+/************************************************Supprime les markers de la map************************************************/
+/******************************************************************************************************************************/
+
+        function supprimer(){
+            mesMarkers.forEach(function (x){
+                x.remove();
+            });
+            //permet de décocher un bouton radio quand on sélectionne une nouvelle catégorie
+            if(btnRadio_selectionne==true){
+				var type                              = tab_radio[0];
+				document.getElementById(type).checked = false;
+				btnRadio_selectionne                  = false;
+				tab_radio                             = [];
+            }
+            //permet déselectionner les étoiles quand on sélectionne une nouvelle catégorie
+            if(etoile_selectionne==true){
+                var _type = tab_etoile[0];
+                var _lettre;
+                switch(_type){
+                    case "hotel": _lettre = "H"; id = "choixhotel";
+                        break;
+                    case "collectif": _lettre = "C"; id = "choixcollectif";
+                        break;
+                    case "locatif": _lettre = "L"; id = "choixlocatif";
+                        break;
+                }
+                for(i=1;i<6;i++){
+                    document.getElementById('_'+i + _lettre).src = tabEtoile[0].src;
+                }
+				etoile_selectionne = false;
+				tab_etoile         = [];
+            }
+        }
+
+/******************************************************************************************************************************/
+/*************************Transforme une chaine de la forme "Centre_Commercial" en "Centre Commercial"*************************/
+/******************************************************************************************************************************/
+
+        function decouperChaine(string){
+            if(string.indexOf("_") == -1){
+                return string;
+            }
+            //RegExp permet de trouver toutes les occurrences de "_" dans la chaine de caractère
+			var exp1   = new RegExp("_","gi");
+			var chaine = string.replace(exp1, " ");
+            return chaine;
+        }
+
+/******************************************************************************************************************************/
+/*****************Ajoute les éléments selon le type (ex. typeResto) et la catégorie de la donnée (ex. Bouchon)*****************/
+/******************************************************************************************************************************/
+
+        function typeSousCategorie(type, categorie){
+        	supprimer();
+            btnRadio_selectionne = true;
+            tab_radio.push(categorie); // ajoute le type dans le tableau
+
+            var new_cat = decouperChaine(categorie);
+            switch(type){
+                case "typeResto":
+                    mesDonneesResto[0].features.forEach(function (x){
+                        if(x.other_information.typeResto == new_cat){
+                            ajouterElementSurCarte(x, categorie);
+                        }
+                    });
+                    break;
+
+                case "typePatrimoine":
+                    mesDonneesPatri[0].features.forEach(function (x){
+                        var chaine = x.properties.nom;
+                        var sousChaine = chaine.indexOf(new_cat); // retourne un nombre
+                        //si on trouve la catégorie dans la chaine alors on affiche l'élément
+                        if(sousChaine != -1){
+                            ajouterElementSurCarte(x, categorie);
+                        }
+                    });
+                    break;
+
+                case "typeComSer":
+                    mesDonneesCom[0].features.forEach(function (x){
+                        var chaine = x.other_information.typeCom;
+                        var sousChaine = chaine.indexOf(new_cat); // retourne un nombre
+                        //si on trouve la catégorie dans la chaine alors on affiche l'élément
+                        if(sousChaine != -1){
+                            ajouterElementSurCarte(x, categorie);
+                        }
+                    });
+                    break;
+            }
+        }
+
+/******************************************************************************************************************************/
+/**************************************Colore les étoiles lorsqu'on passe la souris dessus*************************************/
+/******************************************************************************************************************************/
+
+        function rate(level, type){
+            var lettre;
+            switch(type){
+                case "hotel": lettre = "H";
+                    break;
+                case "collectif": lettre = "C";
+                    break;
+                case "locatif": lettre = "L";
+                    break;
+            }
+            // quand on repasse sur les étoiles alors qu'on a déjà cliquer
+            if (etoile_selectionne){
+                for(i=1;i<6;i++){
+                    document.getElementById('_'+i + lettre).src=tabEtoile[0].src;
+                }
+            }
+
+            for(i=1;i<6;i++){
+              /*tant que la souris n'est pas passée sur une des étoiles on affiche les étoiles de couleurs blanche*/
+              document.getElementById('_'+i + lettre).src=(level<i)? tabEtoile[0].src : tabEtoile[1].src;
+            }
+        }
+
+/******************************************************************************************************************************/
+/***********************************************Remets toutes les étoiles en blanc*********************************************/
+/******************************************************************************************************************************/
+        function zero(id, type){
+            supprimer();
+            for(i=1;i<6;i++){
+                document.getElementById('_'+i + type).src = tabEtoile[0].src;
+            }
+        }
+
+/******************************************************************************************************************************/
+/****************************************Ajoute les éléments selon le choix des étoiles****************************************/
+/******************************************************************************************************************************/
+
+        function etoile(char, type){
+            supprimer();
+            etoile_selectionne = true;
+            tab_etoile.push(type);
+            switch(type){
+            	case "hotel":
+            		mesDonneesHotel[0].features.forEach(function (x){
+            			if(x.other_information.etoile == char){
+            				ajouterElementSurCarte(x, type);
+            			}
+            		});
+            		break;
+
+            	case "collectif":
+            		mesDonneesHebergementColl[0].features.forEach(function (x){
+            			if(x.other_information.etoile == char){
+            				ajouterElementSurCarte(x, type);
+            			}
+            		});
+            		break;
+
+            	case "locatif":
+            		mesDonneesHebergementLoc[0].features.forEach(function (x){
+            			if(x.other_information.etoile == char){
+            				ajouterElementSurCarte(x, type);
+            			}
+            		});
+            		break;
+            }
+        }
+
+/******************************************************************************************************************************/
+/***********************************************Récupère l'intervalle du slider************************************************/
+/******************************************************************************************************************************/
+
+        function prix(type, indice){
+			var prix     = document.getElementById("amount" +indice).value;
+			var min      = parseFloat(prix.substring(0,prix.indexOf("€",0)));
+			var debutMax = (prix.indexOf("- ",0))+2;
+			var max      = parseFloat(prix.substring(debutMax, prix.indexOf("€", debutMax)));
+            prixParCategorie(type, min, max);
+        }
+
+/******************************************************************************************************************************/
+/****************************Ajoute les données dont le prix appartient à l'intervalle sélectionner****************************/
+/******************************************************************************************************************************/
+
+        function calculPrix(minimumSlider, maximumSlider, x, type){
+			var minimumBase = parseFloat(x.other_information.prixMini);
+			var maximumBase = parseFloat(x.other_information.prixMaxi);
+            if(minimumBase != NaN & maximumBase != NaN){
+                if(((minimumSlider <= minimumBase) & (minimumBase <= maximumSlider)) | ((minimumSlider <= maximumBase) & (maximumBase <= maximumSlider))){
+                    ajouterElementSurCarte(x, type);
+                }
+            }
+        }
+
+/******************************************************************************************************************************/
+/*******************************************Calcul le prix selon la catégorie voulus*******************************************/
+/******************************************************************************************************************************/
+
+        function prixParCategorie(type, min, max){
+            supprimer();
+            switch(type){
+                case "hotel":
+                    mesDonneesHotel[0].features.forEach(function (x){
+                        calculPrix(min, max, x, type);
+                    });
+                    break;
+
+                case "collectif":
+                    mesDonneesHebergementColl[0].features.forEach(function (x){
+                        calculPrix(min, max, x, type);
+                    });
+                    break;
+
+                case "locatif":
+                    mesDonneesHebergementLoc[0].features.forEach(function (x){
+                        calculPrix(min, max, x, type);
+                    });
+                    break;
+
+                case "resto":
+                    mesDonneesResto[0].features.forEach(function (x){
+                        calculPrix(min, max, x, type);
+                    });
+                    break;
+            }
+        }
+
+/******************************************************************************************************************************/
+/***************************************Change le collapse selon s'il est déplier ou non***************************************/
+/******************************************************************************************************************************/
+
+        function changementBoutton(pointer){
+            pointer.getElementsByTagName('span')[0].innerHTML=(pointer.getElementsByTagName('span')[0].innerHTML=='Voir moins'? 'Voir plus':'Voir moins');
+        }
+
+/******************************************************************************************************************************/
+/*********************************************Gère l'évènement de la touche Entrée*********************************************/
+/******************************************************************************************************************************/
+
+        function toucheEntree (event){
+        	//Si la touche Entrée (dont le code ASCII est 13) a été appuyer alors on lance la fonction rechercher
+            if(event.keyCode == 13){
+                rechercher();
+            }
+        }
+
+/******************************************************************************************************************************/
+/********************************Recherche une adresse taper à la main dans la base de données*********************************/
+/******************************************************************************************************************************/
+
+        function rechercher(){
+            supprimer();
+			var word  = document.getElementById("search-input").value;
+			var found = false;
+            toutesLesDonnees.forEach(function(x){
+                var type = x.type;
+                x.features.forEach(function(y){
+                    if(word == y.properties.adresse){ //Vérifie la correspondance entre l'adresse tapé et l'adresse dans la base de donnée
+                        ajouterElementSurCarte(y, type);
+                        found = true;
+                    }
+                })
+            })
+            if(found == false){
+                alert('Aucun résultat dans la base de donée pour votre recherche');
+            }
+            document.getElementById("search-input").value = ""; //Vide la barre de recherche
+        }
+
+    </script>
+    <!--Corps de la page:-->
+
+    <!--Barre de recherche-->
+    <div class="topnav">
+        <input id ="search-input" type="text" placeholder="Rechercher..." onkeypress="toucheEntree(event)" autocomplete="on">
+        <button onclick="rechercher()"><i class="fa fa-search"></i></button>
+    </div>
+
+    <!--Menu vertical de gauche-->
+    <div id= "wrapper" class="sidebar-wrap">
+        <aside id="sidebar">
+            <ul id="menu">
+                <li><a class="home" onclick= "supprimer()">Home</a></li>
+                <li><a class="bed">Hotel</a>
+                    <ul>
+                        <h4>HOTEL</h4>
+                        <li id="etoileH">
+                            <h6>Classification</h6>
+                            <img src="./data/img/star.png" id='_1H' name="hotel"  onclick="etoile('1 étoile', this.name)" onmouseover="rate(1, this.name)" />
+                            <img src="./data/img/star.png" id='_2H' name="hotel"  onclick="etoile('2 étoiles', this.name)" onmouseover="rate(2, this.name)" />
+                            <img src="./data/img/star.png" id='_3H' name="hotel"  onclick="etoile('3 étoiles', this.name)" onmouseover="rate(3, this.name)" />
+                            <img src="./data/img/star.png" id='_4H' name="hotel"  onclick="etoile('4 étoiles', this.name)" onmouseover="rate(4, this.name)"/>
+                            <img src="./data/img/star.png" id='_5H' name="hotel"  onclick="etoile('5 étoiles', this.name)" onmouseover="rate(5, this.name)"  />
+                            <i class="fa fa-times-circle" type="button" onclick="zero('choixhotel', 'H');" style="color:red;"></i><br/>
+                        </li>
+                        <br><br>
+                        <li id="prixH">
+                            <h6>Prix </h6>
+                            <p>
+                                <input type="text1" id="amount1" name = "hotel" max = "1050">
+                            </p>
+                            <div id="slider-range1"></div>
+                            <br>
+                        </li>
+                    </ul>
+                </li>
+
+                <li><a class="cultery">Restaurant</a>
+                    <ul>
+                        <h4>RESTAURANT</h4>
+                        <div id="typeR">
+                            <h6>Type</h6>
+                            <li>
+                                <input name = "typeResto" id = "Bouchon" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Bouchon</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Brasserie" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Brasserie</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Cafétéria" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Cafétéria</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Crêperie" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Crêperie</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Restaurant_gastronomique" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Gastronomique</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Grill" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Grill</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Pizzeria" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Pizzeria</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Restauration_rapide" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Restauration rapide</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Restaurant_de_spécialités_étrangères" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Spécialités étrangères</label>
+                            </li>
+                            <li>
+                                <input name = "typeResto" id = "Restaurant_traditionnel" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Traditionnel<label>
+                            </li>
+                        </div>
+                        <br><br>
+                        <li id="prixR">
+                            <h6>Prix</h6>
+                            <p>
+                                <input type="text2" id="amount2" name = "resto" max="100">
+                            </p>
+                            <div id="slider-range2"></div>
+                            <br>
+                        </li>
+                    </ul>
+                </li>
+
+                <li><a class="users">Hébergement Collectif</a>
+                    <ul>
+                        <h4>COLLECTIF</h4>
+                        <li id="etoileC">
+                            <h6>Classification</h6>
+                            <img src="./data/img/star.png" id='_1C' name="collectif"  onclick="etoile('1 étoile', this.name)" onmouseover="rate(1, this.name)" />
+                            <img src="./data/img/star.png" id='_2C' name="collectif"  onclick="etoile('2 étoiles', this.name)" onmouseover="rate(2, this.name)" />
+                            <img src="./data/img/star.png" id='_3C' name="collectif"  onclick="etoile('3 étoiles', this.name)" onmouseover="rate(3, this.name)" />
+                            <img src="./data/img/star.png" id='_4C' name="collectif"  onclick="etoile('4 étoiles', this.name)" onmouseover="rate(4, this.name)"/>
+                            <img src="./data/img/star.png" id='_5C' name="collectif"  onclick="etoile('5 étoiles', this.name)" onmouseover="rate(5, this.name)"  />
+                            <i class="fa fa-times-circle" type="button" onclick="zero('choixcollectif', 'C');" style="color:red;"></i><br/>
+                        </li>
+                        <br><br>
+                        <li id="prixC">
+                            <h6>Prix</h6>
+                            <p>
+                                <input type="text3" id="amount3" name = "collectif" max="500">
+                            </p>
+                            <div id="slider-range3"></div>
+                            <br>
+                        </li>
+                    </ul>
+                </li>
+
+                <li><a class="tree">Hébergement Locatif</a>
+                    <ul>
+                        <h4>LOCATIF</h4>
+                        <li id="etoileL">
+                            <h6>Classification</h6>
+                            <img src="./data/img/star.png" id='_1L' name="locatif"  onclick="etoile('1 étoile', this.name)" onmouseover="rate(1, this.name)" />
+                            <img src="./data/img/star.png" id='_2L' name="locatif"  onclick="etoile('2 étoiles', this.name)" onmouseover="rate(2, this.name)" />
+                            <img src="./data/img/star.png" id='_3L' name="locatif"  onclick="etoile('3 étoiles', this.name)" onmouseover="rate(3, this.name)" />
+                            <img src="./data/img/star.png" id='_4L' name="locatif"  onclick="etoile('4 étoiles', this.name)" onmouseover="rate(4, this.name)"/>
+                            <img src="./data/img/star.png" id='_5L' name="locatif"  onclick="etoile('5 étoiles', this.name)" onmouseover="rate(5, this.name)"  />
+                            <i class="fa fa-times-circle" type="button" onclick="zero('choixlocatif', 'L');" style="color:red;"></i><br/>
+                        </li>
+                        <br><br>
+                        <li id="prixL">
+                            <h6>Prix</h6>
+                            <p>
+                                <input type="text4" id="amount4" name = "locatif" max="2500">
+                            </p>
+                            <div id="slider-range4"></div>
+                            <br>
+                        </li>
+                    </ul>
+                </li>
+
+                <li><a id="patrimoine" class="institution">Patrimoine</a>
+                    <ul>
+                        <h4>PATRIMOINE</h4>
+                        <div id="culteP">
+                            <h6>Lieux de culte</h6>
+                            <li>
+                                <input name = "typePatrimoine" id = "Eglise" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Eglise</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Mosquée" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Mosquée</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Pagode" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Pagode</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Temple" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Temple</label>
+                            </li>
+                        </div>
+                        <br><br>
+                        <div id="lieuxP">
+                            <h6>Lieux remarquables</h6>
+                            <li>
+                                <input name = "typePatrimoine" id = "Cimetière" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Cimetière</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Fresque" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Fresque</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Jardin" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Jardins et Parcs</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Maison" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Maison</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Mémorial" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Mémorial</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Musée" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Musée</label>
+                            </li>
+                            <li>
+                                <input name = "typePatrimoine" id = "Traboule" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Traboule</label>
+                            </li>
+                        </div>
+                    </ul>
+                </li>
+
+                <li><a id="commerce" class="shopping-bag">Commerce et Service</a>
+                    <ul>
+                        <h4>COMMERCES & SERVICES</h4>
+                        <div id="_commerce">
+                            <h6>Commerces</h6>
+                            <li>
+                                <input name = "typeComSer" id = "Beauté" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Beauté et Bien être</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Centre_commercial" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Centre Commercial</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "commerces" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Commerces</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Grand_magasin" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Grand Magasin</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Petite_à_Grande" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Petite à grande distribution</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Supermarché" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Supermarché</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Vêtements" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Vêtements et Accessoires</label>
+                            </li>
+                        </div>
+                        <br>
+                        <div id="service">
+                            <h6>Services</h6>
+                            <li>
+                                <input name = "typeComSer" id = "administratifs" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Administratifs</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "immobilière" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Agences Immobilières</label>
+                            </li>
+                            <li>
+                                <input name = "typeComSer" id = "Argent" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Banque - Assurance</label>
+                            </li>
+                            <button class="btn btn-link" data-toggle="collapse" href="#collapseVoirPlus" aria-expanded="false" aria-controls="collapseVoirPlus" onclick="changementBoutton(this)">
+                                <i id = "plusOuMoins" class="fa fa-chevron-circle-right" aria-hidden="true">
+                                    <span> Voir plus</span>
+                                </i>
+                            </button>
+                            <div id="collapseVoirPlus" class="collapse" role="tabpanel" aria-labelledby="voirPlus">
+                                <li>
+                                    <input name = "typeComSer" id = "Culturel" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Culture</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "Enseignement" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Enseignement</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "Evénementiel" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Evénementiel</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "papeterie" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Librairie - Papeterie</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "Location_de_matériel" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Location Vélos - VTT</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "location_de_véhicules" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Location véhicules</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "Communication" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Radio - Presse</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "santé" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Santé - Hôpital</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "spectacles" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Spectacles et animations</label>
+                                </li>
+                                <li>
+                                    <input name = "typeComSer" id = "transports" type="radio" onclick="typeSousCategorie(this.name, this.id)"><label>Transports</label>
+                                </li>
+                            </div>
+                        </div>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+    </div>
+
+    <div id="map"></div>
+
+    <!--Initialisation de la map-->
+	<script>
+        mapboxgl.accessToken = "ENTREZ LA CLE ICI!";
+        var map = new mapboxgl.Map({
+            container: "map", // id du container
+            style: "mapbox://styles/mapbox/streets-v9", // style de la map
+            center: [4.8471159,45.7565900], // position de départ
+            zoom: 11.5, // zoom de départ
+        });
+
+        // Ajoute les fonctions de zoom et de rotation sur la map, en bas à gauche
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+	</script>
+
+</body>
+</html>
