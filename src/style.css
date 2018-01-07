@@ -1,0 +1,329 @@
+#map {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+}
+.administratifs, .Argent, .Beauté, .Bouchon, .Brasserie, .Cafétéria, .Cimetière, .collectif, .commerce, .commerces, .Supermarché, .Crêperie, .Culturel, .Eglis, .Enseignement, .Evénementiel, .gastronomique, .Grill, .santé, .hotel, .immobilière, .Jardin, .papeterie, .locatif, .Maison, .Mosquée, .Musée, .Mémorial, .patrimoine, .Pizzeria, .Communication, .resto, .Restaurant_traditionnel, .Restaurant_gastronomique, .Restaurant_de_spécialités_étrangères, .Restauration_rapide, .spectacles, .Temple, .Pagode, .transports, .location_de_véhicules, .Vêtements, .Location_de_matériel, .Fresque, .Traboule, .Centre_commercial, .Grand_magasin, .Petite_à_Grande, .Restauration_rapide {
+  background-size: cover;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.administratifs {
+  background-image: url('../data/img/administratif.png');
+}
+.Argent {
+  background-image: url('../data/img/banque.png');
+}
+.Beauté {
+  background-image: url('../data/img/beaute.png');
+}
+.Bouchon {
+  background-image: url('../data/img/resto.png');
+}
+.Brasserie {
+  background-image: url('../data/img/brasserie.png');
+}
+.Cafétéria {
+  background-image: url('../data/img/cafeteria.png');
+}
+.Cimetière {
+  background-image: url('../data/img/cimetiere.png');
+}
+.collectif {
+  background-image: url('../data/img/collectif.png');
+}
+.commerce, .commerces, .Supermarché {
+  background-image: url('../data/img/commerce.png');
+}
+.Crêperie {
+  background-image: url('../data/img/creperie.png');
+}
+.Culturel {
+  background-image: url('../data/img/culture.png');
+}
+.Eglise {
+  background-image: url('../data/img/eglise.png');
+}
+.Enseignement {
+  background-image: url('../data/img/enseignement.png');
+}
+.Evénementiel {
+  background-image: url('../data/img/evenementiel.png');
+}
+.gastronomique {
+  background-image: url('../data/img/gastronomique.png');
+}
+.Grill {
+  background-image: url('../data/img/grill.png');
+}
+.santé {
+  background-image: url('../data/img/hopital.png');
+}
+.hotel {
+  background-image: url('../data/img/hotel.png');
+}
+.immobilière {
+  background-image: url('../data/img/immobilier.png');
+}
+.Jardin {
+  background-image: url('../data/img/jardin.png');
+}
+.papeterie {
+  background-image: url('../data/img/librairie.png');
+}
+.locatif {
+  background-image: url('../data/img/locatif.png');
+}
+.Maison {
+  background-image: url('../data/img/maison.png');
+}
+.Mosquée {
+  background-image: url('../data/img/mosquee.png');
+}
+.Musée, .Mémorial {
+  background-image: url('../data/img/musee.png');
+}
+.patrimoine {
+  background-image: url('../data/img/patrimoine.png');
+}
+.Pizzeria {
+  background-image: url('../data/img/pizza.png');
+}
+.Communication {
+  background-image: url('../data/img/presse.png');
+}
+.resto {
+  background-image: url('../data/img/resto.png');
+}
+.Restaurant_traditionnel{
+  background-image: url('../data/img/resto.png');
+}
+.Restaurant_gastronomique{
+  background-image: url('../data/img/gastronomique.png');
+}
+.Restaurant_de_spécialités_étrangères {
+  background-image: url('../data/img/resto.png');
+}
+.Restauration_rapide {
+  background-image: url('../data/img/restauration_rapide.png');
+}
+.spectacles {
+  background-image: url('../data/img/spectacle.png');
+}
+.Temple, .Pagode {
+  background-image: url('../data/img/temple.png');
+}
+.transports {
+  background-image: url('../data/img/train.png');
+}
+.location_de_véhicules {
+  background-image: url('../data/img/vehicule.png');
+}
+.Vêtements {
+  background-image: url('../data/img/vetement.png');
+}
+.Location_de_matériel {
+  background-image: url('../data/img/vtt.png');
+}
+.Fresque {
+  background-image: url('../data/img/fresque.png');
+}
+.Traboule {
+  background-image: url('../data/img/traboule.png');
+}
+.Centre_commercial {
+  background-image: url('../data/img/centre_commercial.png');
+}
+.Grand_magasin {
+  background-image: url('../data/img/grand_magasin.png');
+}
+.Petite_à_Grande {
+  background-image: url('../data/img/commerce2.png');
+}
+.Restauration_rapide {
+  background-image: url('../data/img/restauration_rapide.png');
+}
+
+.mapboxgl-popup {
+  max-width: 200px;
+}
+
+@font-face {
+  font-family: 'Louis George Cafe';
+  src : url('../data/font/Louis George Cafe.ttf') format ('truetype');
+}
+
+@font-face {
+  font-family: 'Quantify Bold';
+  src : url('../data/font/Quantify Bold v2.6.ttf') format ('truetype');
+}
+
+.mapboxgl-popup-content {
+  text-align: center;
+  font-family: 'Louis George Cafe';
+  /*font-family: 'Open Sans', sans-serif;*/
+}
+
+.topnav{
+  position:fixed;
+  right:0;
+  top:0;
+  margin-top:6px;
+  margin-right:10px;
+  z-index: 1000;
+}
+
+.topnav button:hover {
+  background: #ccc;
+}
+
+#menu {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+#menu li a{
+    display:block;
+    z-index: 1000;
+    height:em;
+    width:5em;
+    text-indent:-500em;
+    line-height:5em;
+    text-align:center;
+    color: #ff5c62;
+    background: #ffffff;
+    position: relative;
+    border-bottom: 1px solid #ffe2e3;
+    transition: background 0.3s ease-in-out;
+    list-style: none;
+}
+#menu li a:before {
+  font-family: FontAwesome;
+  speak: none;
+  text-indent: 0em;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 1.4em;
+}
+#menu li a.bed:before {
+  content: "\f236";
+}
+#menu li a.cultery:before {
+  content: "\f0f5";
+}
+#menu li a.users:before {
+  content: "\f0c0";
+}
+#menu li a.tree:before {
+  content: "\f1bb";
+}
+#menu li a.institution:before {
+  content: "\f19c";
+}
+#menu li a.shopping-bag:before {
+  content: "\f290";
+}
+#menu li a.home:before {
+  content: "\f015";
+}
+#menu li a:hover{
+  background: #ff5c62;
+  color: #fff;
+}
+#menu li.current a {
+  background: #ff5e5e;
+  color: #fff;
+}
+#menu li a.active {
+  background: #ff5e5e;
+  color: #fff;
+}
+#menu li a.active:after{
+    position:absolute;
+    left:5em;
+    top:0;
+    content:"";
+    border:2.5em solid transparent;
+    border-left-color:#ff5c62;
+    border-width: 2.5em 1em
+}
+
+/* Par défaut, on cache les sous-menus */
+#menu li ul{
+  display : none;
+  position : relative;
+}
+
+/* Mais si on passe sur un menu qui a un sous-menu, on affiche ce dernier */
+#menu li:hover ul
+{
+  display : block;
+  z-index: 1000;
+  position : absolute;
+  left : 80px;
+  top : 0px;
+  background-color : #ffffff;
+  height: 100%;
+  width: 258px;
+  list-style-type: none; 
+  margin: 0px;
+  padding-left: 0px;
+  border-left: 1px solid #ffe2e3;
+}
+
+#menu h4 {
+  text-align: center;
+  line-height: 1.8;
+  border-bottom: 0.1px solid red;
+}
+
+#menu h6 {
+  text-align: justify;
+  line-height: 1.8;
+  font-family: 'Quantify Bold';
+  background-color: lightgrey;
+}
+
+#amount1, #amount2, #amount3, #amount4{
+  border:0; 
+  color:#f6931f; 
+  font-weight:bold;
+}
+
+#etoileH, #etoileC, #etoileL, #prixH, #prixR, #prixC, #prixL, #typeR, #culteP, #lieuxP, #_commerce, #service{
+  border: 2px solid lightgrey;
+  border-radius: 5px;
+  width : 220px;
+  margin-left: 15px;
+  z-index: 1500;
+}
+
+#etoileH, #etoileC, #etoileL{
+  text-align: center;  
+}
+
+#service{
+  height : 190px; 
+  overflow : auto;
+}
+
+#slider-range1, #slider-range2, #slider-range3, #slider-range4{
+  margin-left: 15px;
+  margin-right: 15px;
+  cursor: pointer;
+}
