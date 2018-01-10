@@ -42,7 +42,7 @@
 		tabEtoile[0]     = new Image();
 		tabEtoile[0].src = "./data/img/star.png";
 		tabEtoile[1]     = new Image();
-		tabEtoile[1].src = "../data/img/star_yellow.png";
+		tabEtoile[1].src = "./data/img/star_yellow.png";
 
         // etoile_selectionne est un booléen permettant de savoir si une étoile est oui ou non sélectionné, tab_etoile récupéra le type de la donnée dont l'étoile a été sélectionner
 		var etoile_selectionne = false;
@@ -136,7 +136,7 @@
     <script>
 
 /******************************************************************************************************************************/
-/*************Ajoute des markers et des popups, qui elles s'afficheront lors d'un clic sur le marqueur, sur la map*************/
+/*************Ajouts des markers et des popups, qui elles s'afficheront lors d'un clic sur le marqueur, sur la map*************/
 /******************************************************************************************************************************/
 
         function ajouterElementSurCarte(marker, typeMarker) {
@@ -703,7 +703,7 @@
 
     <!--Initialisation de la map-->
 	<script>
-        mapboxgl.accessToken = "ENTREZ LA CLE ICI!";
+        mapboxgl.accessToken = "pk.eyJ1IjoiZW1ldHlzdCIsImEiOiJjajd1cGl1cGI0bHYwMndxa2ZmeHQ5NjVyIn0.O1H6GUm0GCsSf__0BnMa8w";
         var map = new mapboxgl.Map({
             container: "map", // id du container
             style: "mapbox://styles/mapbox/streets-v9", // style de la map
